@@ -676,7 +676,8 @@ jobs:
           path: "dist"
   build_android_library:
     name: Build Android library (${{ matrix.go_arch }})
-    if: (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Android' || inputs.build == 'publish-android') && github.ref != 'refs/heads/oldstable'
+    # Disabled in this fork: only command-line binaries are released.
+    if: false && (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Android' || inputs.build == 'publish-android') && github.ref != 'refs/heads/oldstable'
     runs-on: ubuntu-latest
     needs:
       - calculate_version
@@ -735,7 +736,8 @@ jobs:
           compression-level: 0
   build_android:
     name: Build Android (${{ matrix.variant }})
-    if: (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Android') && github.ref != 'refs/heads/oldstable'
+    # Disabled in this fork: only command-line binaries are released.
+    if: false && (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Android') && github.ref != 'refs/heads/oldstable'
     runs-on: ubuntu-latest
     needs:
       - calculate_version
@@ -853,7 +855,8 @@ jobs:
           path: 'dist'
   publish_android:
     name: Publish Android
-    if: github.event_name == 'workflow_dispatch' && inputs.build == 'publish-android' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/testing')
+    # Disabled in this fork: only command-line binaries are released.
+    if: false && github.event_name == 'workflow_dispatch' && inputs.build == 'publish-android' && (github.ref == 'refs/heads/stable' || github.ref == 'refs/heads/testing')
     runs-on: ubuntu-latest
     needs:
       - calculate_version
@@ -952,7 +955,8 @@ jobs:
           LOCAL_PROPERTIES: ${{ secrets.LOCAL_PROPERTIES }}
   build_windows_client:
     name: Build Windows client (${{ matrix.desktop_arch }})
-    if: (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Windows') && github.ref != 'refs/heads/oldstable'
+    # Disabled in this fork: only command-line binaries are released.
+    if: false && (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Windows') && github.ref != 'refs/heads/oldstable'
     runs-on: windows-latest
     needs:
       - calculate_version
@@ -1069,7 +1073,8 @@ jobs:
           path: 'dist'
   build_linux_client:
     name: Build Linux client (${{ matrix.desktop_arch }})
-    if: (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Linux') && github.ref != 'refs/heads/oldstable'
+    # Disabled in this fork: only command-line binaries are released.
+    if: false && (github.event_name != 'workflow_dispatch' || inputs.build == 'All' || inputs.build == 'Linux') && github.ref != 'refs/heads/oldstable'
     runs-on: ubuntu-26.04
     needs:
       - calculate_version
