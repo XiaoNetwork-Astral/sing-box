@@ -51,6 +51,7 @@ type Inbound struct {
 	networkIsDefault bool
 	authenticator    *auth.Authenticator
 	tlsConfig        tls.ServerConfig
+	fallback         *naiveFallback
 	httpServer       *http.Server
 }
 
@@ -85,12 +86,22 @@ func NewInbound(ctx context.Context, router adapter.Router, logger log.ContextLo
 		}
 		inbound.tlsConfig = tlsConfig
 	}
+	if options.Fallback != nil {
+		fallback, err := newNaiveFallback(inbound, options.Fallback)
+		if err != nil {
+			return nil, err
+		}
+		inbound.fallback = fallback
+	}
 	return inbound, nil
 }
 
 func (n *Inbound) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 	if stage != adapter.StartStateStart {
 		return nil
+	}
+	if n.fallback != nil {
+		scope.Add(n.fallback.Close)
 	}
 	if n.tlsConfig != nil {
 		err := n.tlsConfig.Start()
@@ -111,6 +122,7 @@ func (n *Inbound) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 			BaseContext: func(listener net.Listener) context.Context {
 				return n.ctx
 			},
+			ConnContext: n.connContext,
 		}
 		listener := net.Listener(tcpListener)
 		if n.tlsConfig != nil {
@@ -147,10 +159,18 @@ func (n *Inbound) Start(stage adapter.StartStage, scope *adapter.Scope) error {
 func (n *Inbound) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 	ctx := log.ContextWithNewID(request.Context())
 	if request.Method != "CONNECT" {
+		if n.fallback != nil {
+			n.fallback.proxy.ServeHTTP(writer, request.WithContext(ctx))
+			return
+		}
 		rejectHTTP(writer, http.StatusBadRequest)
 		n.badRequest(ctx, request, E.New("not CONNECT request"))
 		return
 	} else if request.Header.Get("Padding") == "" {
+		if n.fallback != nil {
+			n.rejectFallback(ctx, writer, request, E.New("missing naive padding"))
+			return
+		}
 		rejectHTTP(writer, http.StatusBadRequest)
 		n.badRequest(ctx, request, E.New("missing naive padding"))
 		return
@@ -160,6 +180,10 @@ func (n *Inbound) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
 		authOk = n.authenticator.Verify(userName, password)
 	}
 	if !authOk {
+		if n.fallback != nil {
+			n.rejectFallback(ctx, writer, request, E.New("authorization failed"))
+			return
+		}
 		rejectHTTP(writer, http.StatusProxyAuthRequired)
 		n.badRequest(ctx, request, E.New("authorization failed"))
 		return

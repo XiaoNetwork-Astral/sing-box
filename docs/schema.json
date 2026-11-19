@@ -8076,6 +8076,9 @@
                 "reno"
               ]
             },
+            "fallback": {
+              "$ref": "#/$defs/NaiveFallbackOptions"
+            },
             "tls": {
               "$ref": "#/$defs/InboundTLSOptions"
             }
@@ -10497,6 +10500,30 @@
         },
         "fallback_delay": {
           "$ref": "#/$defs/Duration"
+        }
+      },
+      "additionalProperties": false
+    },
+    "NaiveFallbackOptions": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "reject_url": {
+          "type": "string"
+        },
+        "reject_status_code": {
+          "type": "integer"
+        },
+        "headers": {
+          "$ref": "#/$defs/HTTPHeader"
+        },
+        "rewrite_host": {
+          "type": "boolean"
+        },
+        "enable_x_forwarded": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false

@@ -8,10 +8,20 @@ import (
 
 type NaiveInboundOptions struct {
 	ListenOptions
-	Users                 []auth.User `json:"users,omitempty"`
-	Network               NetworkList `json:"network,omitempty"`
-	QUICCongestionControl string      `json:"quic_congestion_control,omitempty" enum:"bbr,cubic,reno"`
+	Users                 []auth.User           `json:"users,omitempty"`
+	Network               NetworkList           `json:"network,omitempty"`
+	QUICCongestionControl string                `json:"quic_congestion_control,omitempty" enum:"bbr,cubic,reno"`
+	Fallback              *NaiveFallbackOptions `json:"fallback,omitempty"`
 	InboundTLSOptionsContainer
+}
+
+type NaiveFallbackOptions struct {
+	URL              string               `json:"url"`
+	RejectURL        string               `json:"reject_url,omitempty"`
+	RejectStatusCode int                  `json:"reject_status_code,omitempty"`
+	Headers          badoption.HTTPHeader `json:"headers,omitempty"`
+	RewriteHost      bool                 `json:"rewrite_host,omitempty"`
+	EnableXForwarded bool                 `json:"enable_x_forwarded,omitempty"`
 }
 
 type NaiveOutboundOptions struct {
